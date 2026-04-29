@@ -41,9 +41,17 @@ spec:
                     sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
                     
                     // 2. Log in and Push
-                    // Note: Single quotes on the outside, double quotes around the shell variables
-                    sh 'echo "$DOCKERHUB_CREDS_PSW" | docker login -u "$DOCKERHUB_CREDS_USR" --password-stdin'
-                    sh "docker push ${IMAGE_NAME}:${IMAGE_TAG}"
+                    // 👇 REPLACE your old withCredentials block with this one 👇
+                    withCredentials([usernamePassword(credentialsId: env.DOCKERHUB_CREDENTIALS, passwordVariable: 'DOCKERHUB_PASS', usernameVariable: 'DOCKERHUB_USER')]) {
+                        
+                        // Notice the single quotes ('...') wrapping the whole command, 
+                        // and the double quotes ("...") wrapping the variables inside
+                        sh 'echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin'
+                        
+                        // Keep double quotes here since these are standard Jenkins variables
+                        sh "docker push ${IMAGE_NAME}:${IMAGE_TAG}"
+                    }
+                    // 👆 -------------------------------------------------------- 👆
                 }
             }
         }
