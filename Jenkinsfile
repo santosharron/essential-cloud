@@ -34,31 +34,39 @@ spec:
     }
 
     stages {
-        stage('Build & Push') {
+        // 1. Build the Docker Image
+        stage('Build Image') {
             steps {
                 container('docker') {
-                    // 1. Build the image
                     sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
-                    
-                    // 2. Log in and Push
-                    // 👇 REPLACE your old withCredentials block with this one 👇
-                    withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', passwordVariable: 'DOCKERHUB_PASS', usernameVariable: 'DOCKERHUB_USER')]) {
-                        
-                        sh 'echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin'
-                        sh "docker push ${IMAGE_NAME}:${IMAGE_TAG}"
-                        
-                    }
-                    // 👆 -------------------------------------------------------- 👆
                 }
             }
         }
 
-        stage('Deploy') {
+        // 👇 2. THIS IS THE NEW DEVSECOPS STAGE 👇
+        stage('Security Scan (Healthcare Compliance)') {
             steps {
-                container('kubectl') {
-                    sh "kubectl apply -f deployment.yaml"
-                    sh "kubectl apply -f service.yaml"
-                    sh "kubectl set image deployment/simple-app-deployment web-container=${IMAGE_NAME}:${IMAGE_TAG}"
+                container('docker') {
+                    echo "Installing Trivy Security Scanner..."
+                    sh "apk add --no-cache curl"
+                    sh "curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin"
+                    
+                    echo "Scanning the Docker Image for HIGH and CRITICAL vulnerabilities..."
+                    // We use exit-code 0 so the pipeline doesn't crash if it finds old Python vulnerabilities, but it will print the full report!
+                    sh "trivy image --severity HIGH,CRITICAL --no-progress --exit-code 0 ${IMAGE_NAME}:${IMAGE_TAG}"
+                }
+            }
+        }
+        // 👆 --------------------------------- 👆
+
+        // 3. Push to Docker Hub (Moved AFTER the scan!)
+        stage('Push Image') {
+            steps {
+                container('docker') {
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', passwordVariable: 'DOCKERHUB_PASS', usernameVariable: 'DOCKERHUB_USER')]) {
+                        sh 'echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin'
+                        sh "docker push ${IMAGE_NAME}:${IMAGE_TAG}"
+                    }
                 }
             }
         }
