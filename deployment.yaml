@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: simple-app-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: simple-web-app
+  template:
+    metadata:
+      labels:
+        app: simple-web-app
+    spec:
+      containers:
+      - name: web-container
+        # REPLACE with your Docker Hub username
+        image: your-dockerhub-username/simple-flask-app:latest 
+        ports:
+        - containerPort: 3000
