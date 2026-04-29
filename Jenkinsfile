@@ -58,7 +58,7 @@ spec:
                 container('kubectl') {
                     sh "kubectl apply -f deployment.yaml"
                     sh "kubectl apply -f service.yaml"
-                    sh "kubectl set image deployment/essential-cloud-app essential-cloud-app=${IMAGE_NAME}:${IMAGE_TAG}"
+                    sh "kubectl set image deployment/simple-app-deployment web-container=${IMAGE_NAME}:${IMAGE_TAG}"
                 }
             }
         }
