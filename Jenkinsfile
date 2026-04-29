@@ -29,7 +29,7 @@ spec:
         // This binds the credentials securely. 
         // Jenkins automatically creates DOCKERHUB_CREDS_USR and DOCKERHUB_CREDS_PSW
         DOCKERHUB_CREDS = credentials('dockerhub-credentials')
-        IMAGE_NAME = 'santosharron/essential-cloud-app'
+        IMAGE_NAME = 'santoshvp/essential-cloud-app'
         IMAGE_TAG = "${env.BUILD_NUMBER}"
     }
 
