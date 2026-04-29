@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: simple-app-blue
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: simple-web-app
+      color: blue
+  template:
+    metadata:
+      labels:
+        app: simple-web-app
+        color: blue
+    spec:
+      containers:
+      - name: web-container
+        image: santoshvp/essential-cloud-app:latest 
+        ports:
+        - containerPort: 3000

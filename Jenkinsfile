@@ -62,5 +62,39 @@ spec:
                 }
             }
         }
+
+        // 👇 THIS IS THE NEW BLUE-GREEN DEPLOY STAGE 👇
+        stage('Deploy (Blue-Green)') {
+            steps {
+                container('kubectl') {
+                    sh """
+                    # 1. Figure out which color is currently live
+                    ACTIVE_COLOR=\$(kubectl get svc simple-app-service -o=jsonpath='{.spec.selector.color}' || echo "none")
+                    
+                    # 2. Decide the target environment (the idle one)
+                    if [ "\$ACTIVE_COLOR" = "blue" ]; then
+                        TARGET_COLOR="green"
+                    else
+                        TARGET_COLOR="blue"
+                    fi
+                    
+                    echo "Currently active is \$ACTIVE_COLOR. Deploying new code to \$TARGET_COLOR..."
+                    
+                    # 3. Deploy the new image to the idle environment
+                    kubectl apply -f deployment-\$TARGET_COLOR.yaml
+                    kubectl set image deployment/simple-app-\$TARGET_COLOR web-container=${IMAGE_NAME}:${IMAGE_TAG}
+                    
+                    # 4. Wait for the new pods to be fully ready
+                    kubectl rollout status deployment/simple-app-\$TARGET_COLOR
+                    
+                    # 5. Flip the traffic router to the new environment
+                    kubectl patch svc simple-app-service -p "{\\"spec\\":{\\"selector\\":{\\"color\\":\\"\$TARGET_COLOR\\"}}}"
+                    
+                    echo "Traffic successfully switched to \$TARGET_COLOR!"
+                    """
+                }
+            }
+        }
+        // 👆 --------------------------------------- 👆
     }
 }

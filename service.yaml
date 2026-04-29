@@ -6,7 +6,8 @@ spec:
   type: LoadBalancer
   selector:
     app: simple-web-app
+    color: blue   # The router starts by pointing to the Blue environment
   ports:
     - protocol: TCP
-      port: 80         # The port exposed to the internet
-      targetPort: 3000 # The port your Flask app is running on inside the container
+      port: 80         
+      targetPort: 3000
