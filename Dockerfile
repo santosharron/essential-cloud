@@ -10,8 +10,8 @@ COPY . /app
 # Install the Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Tell Docker that the container will listen on port 5000
-EXPOSE 5000
+# Tell Docker that the container will listen on port 3000
+EXPOSE 3000
 
 # The command to run when the container starts
 CMD ["python", "app.py"]
