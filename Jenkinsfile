@@ -35,9 +35,13 @@ spec:
         stage('Build & Push') {
             steps {
                 container('docker') {
+                    // 1. Build the image
                     sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+                    
+                    // 2. Log in and Push
                     withCredentials([usernamePassword(credentialsId: env.DOCKERHUB_CREDENTIALS, passwordVariable: 'DOCKERHUB_PASS', usernameVariable: 'DOCKERHUB_USER')]) {
-                        sh "echo \$DOCKERHUB_PASS | docker login -u \$DOCKERHUB_USER --password-stdin"
+                        // We use double quotes here so Jenkins can swap $DOCKERHUB_PASS for your actual password
+                        sh "echo ${DOCKERHUB_PASS} | docker login -u ${DOCKERHUB_USER} --password-stdin"
                         sh "docker push ${IMAGE_NAME}:${IMAGE_TAG}"
                     }
                 }
