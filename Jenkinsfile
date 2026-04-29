@@ -40,8 +40,8 @@ spec:
                     
                     // 2. Log in and Push
                     withCredentials([usernamePassword(credentialsId: env.DOCKERHUB_CREDENTIALS, passwordVariable: 'DOCKERHUB_PASS', usernameVariable: 'DOCKERHUB_USER')]) {
-                        // We use double quotes here so Jenkins can swap $DOCKERHUB_PASS for your actual password
-                        sh "echo ${DOCKERHUB_PASS} | docker login -u ${DOCKERHUB_USER} --password-stdin"
+                        // Use single quotes here so the shell handles the variables correctly
+                        sh 'echo $DOCKERHUB_PASS | docker login -u $DOCKERHUB_USER --password-stdin'
                         sh "docker push ${IMAGE_NAME}:${IMAGE_TAG}"
                     }
                 }
