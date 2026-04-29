@@ -26,7 +26,9 @@ spec:
     }
 
     environment {
-        DOCKERHUB_CREDENTIALS = 'dockerhub-credentials'
+        // This binds the credentials securely. 
+        // Jenkins automatically creates DOCKERHUB_CREDS_USR and DOCKERHUB_CREDS_PSW
+        DOCKERHUB_CREDS = credentials('dockerhub-credentials')
         IMAGE_NAME = 'santosharron/essential-cloud-app'
         IMAGE_TAG = "${env.BUILD_NUMBER}"
     }
@@ -39,11 +41,9 @@ spec:
                     sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
                     
                     // 2. Log in and Push
-                    withCredentials([usernamePassword(credentialsId: env.DOCKERHUB_CREDENTIALS, passwordVariable: 'DOCKERHUB_PASS', usernameVariable: 'DOCKERHUB_USER')]) {
-                        // Use single quotes here so the shell handles the variables correctly
-                        sh 'echo $DOCKERHUB_PASS | docker login -u $DOCKERHUB_USER --password-stdin'
-                        sh "docker push ${IMAGE_NAME}:${IMAGE_TAG}"
-                    }
+                    // Note: Single quotes on the outside, double quotes around the shell variables
+                    sh 'echo "$DOCKERHUB_CREDS_PSW" | docker login -u "$DOCKERHUB_CREDS_USR" --password-stdin'
+                    sh "docker push ${IMAGE_NAME}:${IMAGE_TAG}"
                 }
             }
         }
